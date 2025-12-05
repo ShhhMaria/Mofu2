@@ -124,20 +124,7 @@ export default function Login({ onLogin }: LoginProps) {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {!isFirebaseConfigured && (
-              <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-sm space-y-2">
-                <div className="font-bold text-base">⚙️ Firebase Setup Required</div>
-                <div className="text-sm">
-                  1. Copy <span className="font-mono bg-amber-100 px-2 py-1 rounded">.env.local.example</span> to <span className="font-mono bg-amber-100 px-2 py-1 rounded">.env.local</span>
-                </div>
-                <div className="text-sm">
-                  2. Paste your Firebase project values from <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer" className="underline font-bold">Firebase Console</a>
-                </div>
-                <div className="text-sm">
-                  3. Restart the dev server: <span className="font-mono bg-amber-100 px-2 py-1 rounded text-xs">npm run dev</span>
-                </div>
-              </div>
-            )}
+            
             {!isLoginMode && (
               <Input 
                 label="Full Name" 
