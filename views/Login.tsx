@@ -99,7 +99,7 @@ export default function Login({ onLogin }: LoginProps) {
               Minimalist care for your pets.
             </h1>
             <p className="text-amber-100 text-lg">
-              Manage schedules, tasks, and health records with a clean, AI-powered interface.
+              Manage schedules, tasks, and health records with a clean, and aesthetic interface.
             </p>
           </div>
 
