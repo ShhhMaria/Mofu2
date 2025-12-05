@@ -16,11 +16,7 @@ export const PetCard: React.FC<PetCardProps> = ({ pet, onClick, onEdit, onDelete
       onClick={onClick}
       className="group relative bg-white rounded-3xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer border border-orange-200 overflow-hidden"
     >
-      {pet.photo && (
-        <div className="absolute inset-0 opacity-20">
-          <img src={pet.photo} alt={pet.name} className="w-full h-full object-cover" />
-        </div>
-      )}
+     
       
       <div className="relative z-10">
         <div className={`absolute -top-4 -right-4 w-12 h-12 rounded-full ${pet.avatarColor} flex items-center justify-center text-amber-800 shadow-sm border border-white`}>
