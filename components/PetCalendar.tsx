@@ -33,8 +33,18 @@ export function PetCalendar({ tasks, selectedDate, onDateSelect }: PetCalendarPr
   }
 
   const formatDate = (day: number) => {
-    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-    return date.toISOString().split('T')[0];
+    const year = currentMonth.getFullYear();
+    const month = String(currentMonth.getMonth() + 1).padStart(2, '0');
+    const dayStr = String(day).padStart(2, '0');
+    return `${year}-${month}-${dayStr}`;
+  };
+
+  const getTodayString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const getTasksForDate = (day: number) => {
@@ -54,6 +64,8 @@ export function PetCalendar({ tasks, selectedDate, onDateSelect }: PetCalendarPr
     month: 'long',
     year: 'numeric',
   });
+
+  const todayString = getTodayString();
 
   return (
     <div className="bg-white rounded-lg border border-orange-200 p-6">
@@ -97,9 +109,8 @@ export function PetCalendar({ tasks, selectedDate, onDateSelect }: PetCalendarPr
           const dateStr = formatDate(day);
           const dayTasks = getTasksForDate(day);
           const isSelected = dateStr === selectedDate;
-          const isToday = dateStr === new Date().toISOString().split('T')[0];
-          const isPastDate =
-            new Date(dateStr) < new Date(new Date().toISOString().split('T')[0]);
+          const isToday = dateStr === todayString;
+          const isPastDate = dateStr < todayString;
 
           return (
             <button
