@@ -15,7 +15,8 @@ import { Pet, Task } from '../types';
 
 const getCurrentUserIdentifier = () => {
   if (!auth?.currentUser) return null;
-  return auth.currentUser.displayName || auth.currentUser.uid;
+  // FIXED: Always use UID instead of displayName
+  return auth.currentUser.uid;
 };
 
 const ensureOwner = async (): Promise<string> => {
@@ -29,6 +30,7 @@ const ensureOwner = async (): Promise<string> => {
   const payload = {
     id: identifier,
     username: auth.currentUser?.displayName || null,
+    email: auth.currentUser?.email || null,
     uid: auth.currentUser?.uid || null,
     updatedAt: Date.now()
   };
@@ -108,7 +110,13 @@ export const StorageService = {
   // ----- Schedules (incomplete tasks) -----
   getSchedulesByPet: async (petId: string): Promise<Task[]> => {
     if (!db) return [];
-    const q = query(collection(db, "schedules"), where("petId", "==", petId));
+    const ownerId = await ensureOwner();
+    // FIXED: Added ownerId filter to ensure proper data isolation
+    const q = query(
+      collection(db, "schedules"), 
+      where("petId", "==", petId),
+      where("ownerId", "==", ownerId)
+    );
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ id: d.id, ...d.data() } as Task));
   },
@@ -116,7 +124,13 @@ export const StorageService = {
   // ----- Completed Tasks -----
   getCompletedTasksByPet: async (petId: string): Promise<Task[]> => {
     if (!db) return [];
-    const q = query(collection(db, "tasks"), where("petId", "==", petId));
+    const ownerId = await ensureOwner();
+    // FIXED: Added ownerId filter to ensure proper data isolation
+    const q = query(
+      collection(db, "tasks"), 
+      where("petId", "==", petId),
+      where("ownerId", "==", ownerId)
+    );
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ id: d.id, ...d.data() } as Task));
   },
