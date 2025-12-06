@@ -97,13 +97,13 @@ export default function PetPlanner() {
 
     // Check if date is in the past
     if (form.date < todayStr) {
-      alert("Cannot set tasks for past dates");
+      alert("❌ Cannot set tasks for past dates");
       return;
     }
 
     // Check if time is in the past for today's date
-    if (form.date === todayStr && form.time < currentTime) {
-      alert("Cannot set tasks for past times on today's date");
+    if (form.date === todayStr && form.time <= currentTime) {
+      alert(`❌ Cannot set tasks for past times. Current time is ${currentTime}`);
       return;
     }
 
