@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from '../types';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -13,13 +13,30 @@ interface ProfileProps {
 }
 
 export default function Profile({ user, onUpdateUser, onLogout }: ProfileProps) {
-  const [name, setName] = useState(user.name);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState(user.email);
   const [bio, setBio] = useState(user.bio || '');
   const [avatar, setAvatar] = useState(user.avatar || '');
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  // Split the full name into first and last name on mount and when user changes
+  useEffect(() => {
+    if (user.name) {
+      const nameParts = user.name.trim().split(' ');
+      if (nameParts.length === 1) {
+        // Only first name provided
+        setFirstName(nameParts[0]);
+        setLastName('');
+      } else {
+        // First name is first part, last name is everything else
+        setFirstName(nameParts[0]);
+        setLastName(nameParts.slice(1).join(' '));
+      }
+    }
+  }, [user.name]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -38,10 +55,17 @@ export default function Profile({ user, onUpdateUser, onLogout }: ProfileProps) 
     setMessage('');
     
     // Validation
-    const nameVal = validateName(name);
+    const firstNameVal = validateName(firstName);
     const emailVal = validateEmail(email);
     const newErrors: any = {};
-    if (!nameVal.isValid) newErrors.name = nameVal.error;
+    
+    if (!firstNameVal.isValid) newErrors.firstName = firstNameVal.error;
+    
+    // Last name is optional but if provided, validate it
+    if (lastName.trim() && lastName.length < 2) {
+      newErrors.lastName = 'Last name must be at least 2 characters';
+    }
+    
     if (!emailVal.isValid) newErrors.email = emailVal.error;
     
     setErrors(newErrors);
@@ -49,8 +73,13 @@ export default function Profile({ user, onUpdateUser, onLogout }: ProfileProps) 
 
     setIsLoading(true);
     try {
-      // Only update name in Firebase auth (not avatar)
-      const updated = await AuthService.updateProfile({ name, email, bio });
+      // Combine first and last name before saving
+      const fullName = lastName.trim() 
+        ? `${firstName.trim()} ${lastName.trim()}` 
+        : firstName.trim();
+      
+      // Update profile with full name
+      const updated = await AuthService.updateProfile({ name: fullName, email, bio });
       onUpdateUser({ ...updated, avatar: avatar });
       setMessage('✅ Profile updated successfully!');
       setTimeout(() => setMessage(''), 3000);
@@ -61,6 +90,11 @@ export default function Profile({ user, onUpdateUser, onLogout }: ProfileProps) 
       setIsLoading(false);
     }
   };
+
+  // Display full name
+  const fullName = lastName.trim() 
+    ? `${firstName} ${lastName}`.trim() 
+    : firstName.trim();
 
   return (
     <div className="max-w-3xl mx-auto p-6 md:p-12 animate-in fade-in slide-in-from-bottom-4">
@@ -96,18 +130,29 @@ export default function Profile({ user, onUpdateUser, onLogout }: ProfileProps) 
                 <Camera className="w-6 h-6 text-white" />
               </label>
             </div>
-            <h2 className="mt-3 text-xl font-bold text-amber-900">{user.name}</h2>
+            <h2 className="mt-3 text-xl font-bold text-amber-900">{fullName || 'User'}</h2>
             <p className="text-amber-700 text-sm">Member</p>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSave} className="space-y-6 max-w-lg mx-auto">
-            <Input 
-              label="Full Name" 
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              error={errors.name}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <Input 
+                label="First Name" 
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                error={errors.firstName}
+                placeholder="Jane"
+              />
+              
+              <Input 
+                label="Last Name" 
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                error={errors.lastName}
+                placeholder="Doe"
+              />
+            </div>
             
             <Input 
               label="Email Address" 
