@@ -31,7 +31,7 @@ export const PetCard: React.FC<PetCardProps> = ({ pet, onClick, onEdit, onDelete
           <h3 className="text-xl font-bold text-amber-900">{pet.name}</h3>
           <p className="text-sm text-amber-700 font-medium">{pet.breed}</p>
         </div>
-
+        
         <div className="mt-4 flex gap-3">
           <div className="bg-orange-50 border border-orange-100 px-3 py-1 rounded-lg">
             <span className="text-xs text-orange-400 uppercase tracking-wider">Age</span>
@@ -42,21 +42,21 @@ export const PetCard: React.FC<PetCardProps> = ({ pet, onClick, onEdit, onDelete
             <p className="font-semibold text-amber-800">{pet.weight}kg</p>
           </div>
         </div>
-
+        
         <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <button 
-              onClick={onEdit}
-              className="p-2 text-orange-300 hover:text-amber-800 hover:bg-orange-100 rounded-full transition-colors"
-              title="Edit Pet"
+            onClick={onEdit}
+            className="p-2 text-orange-300 hover:text-amber-800 hover:bg-orange-100 rounded-full transition-colors"
+            title="Edit Pet"
           >
-              <Edit2 className="w-4 h-4" />
+            <Edit2 className="w-4 h-4" />
           </button>
           <button 
-              onClick={onDelete}
-              className="p-2 text-orange-300 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
-              title="Delete Pet"
+            onClick={onDelete}
+            className="p-2 text-orange-300 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+            title="Delete Pet"
           >
-              <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-4 h-4" />
           </button>
         </div>
       </div>
