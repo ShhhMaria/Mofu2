@@ -15,8 +15,9 @@ export default function Login({ onLogin }: LoginProps) {
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Form State
-  const [name, setName] = useState('');
+  // Form State - separated first and last name
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   
@@ -41,11 +42,17 @@ export default function Login({ onLogin }: LoginProps) {
       isValid = false;
     }
 
-    // Name (Only for signup)
+    // First Name and Last Name (Only for signup)
     if (!isLoginMode) {
-      const nameValidation = validateName(name);
-      if (!nameValidation.isValid) {
-        newErrors.name = nameValidation.error!;
+      const firstNameValidation = validateName(firstName);
+      if (!firstNameValidation.isValid) {
+        newErrors.firstName = firstNameValidation.error!;
+        isValid = false;
+      }
+
+      const lastNameValidation = validateName(lastName);
+      if (!lastNameValidation.isValid) {
+        newErrors.lastName = lastNameValidation.error!;
         isValid = false;
       }
     }
@@ -64,7 +71,9 @@ export default function Login({ onLogin }: LoginProps) {
       if (isLoginMode) {
         await AuthService.login(email, password);
       } else {
-        await AuthService.signup(name, email, password);
+        // Combine first and last name for signup
+        const fullName = `${firstName.trim()} ${lastName.trim()}`;
+        await AuthService.signup(fullName, email, password);
       }
       // App.tsx auth listener will handle the redirect
     } catch (err: any) {
@@ -126,13 +135,22 @@ export default function Login({ onLogin }: LoginProps) {
           <form onSubmit={handleSubmit} className="space-y-4">
             
             {!isLoginMode && (
-              <Input 
-                label="Full Name" 
-                value={name} 
-                onChange={(e) => setName(e.target.value)}
-                error={errors.name}
-                placeholder="e.g. Jane Doe"
-              />
+              <div className="grid grid-cols-2 gap-3">
+                <Input 
+                  label="First Name" 
+                  value={firstName} 
+                  onChange={(e) => setFirstName(e.target.value)}
+                  error={errors.firstName}
+                  placeholder="Jane"
+                />
+                <Input 
+                  label="Last Name" 
+                  value={lastName} 
+                  onChange={(e) => setLastName(e.target.value)}
+                  error={errors.lastName}
+                  placeholder="Doe"
+                />
+              </div>
             )}
             
             <Input 
@@ -186,6 +204,8 @@ export default function Login({ onLogin }: LoginProps) {
                   setIsLoginMode(!isLoginMode);
                   setErrors({});
                   setPassword('');
+                  setFirstName('');
+                  setLastName('');
                 }}
                 className="text-amber-900 font-bold hover:underline"
               >
