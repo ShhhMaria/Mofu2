@@ -16,7 +16,13 @@ export default function PetPlanner() {
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
   
   const [form, setForm] = useState({
     title: '',
@@ -40,8 +46,9 @@ export default function PetPlanner() {
       const p = pets.find(x => x.id === petId);
       if (p) {
         setPet(p);
-        const t = await StorageService.getTasksByPet(petId);
-        setTasks(t);
+        const t = await StorageService.getSchedulesByPet(petId);
+        const completedTasks = await StorageService.getCompletedTasksByPet(petId);
+        setTasks([...t, ...completedTasks]);
       } else {
         navigate('/');
       }
@@ -59,21 +66,44 @@ export default function PetPlanner() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, isCompleted: boolean) => {
     if (window.confirm("Delete this task?")) {
-      await StorageService.deleteTask(id);
+      await StorageService.deleteTask(id, isCompleted);
       setTasks(tasks.filter(t => t.id !== id));
     }
+  };
+
+  const getTodayString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const getCurrentTime = () => {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
   };
 
   const handleSaveTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pet || !form.title || !form.time || !form.date) return;
 
+    const todayStr = getTodayString();
+    const currentTime = getCurrentTime();
+
     // Check if date is in the past
-    const todayStr = new Date().toISOString().split('T')[0];
     if (form.date < todayStr) {
       alert("Cannot set tasks for past dates");
+      return;
+    }
+
+    // Check if time is in the past for today's date
+    if (form.date === todayStr && form.time < currentTime) {
+      alert("Cannot set tasks for past times on today's date");
       return;
     }
 
@@ -92,7 +122,8 @@ export default function PetPlanner() {
           title: form.title,
           time: form.time,
           type: form.type,
-          date: form.date
+          date: form.date,
+          completed: false
         });
         setTasks([...tasks, task]);
       }
@@ -113,6 +144,9 @@ export default function PetPlanner() {
   const todaysTasks = tasks
     .filter(t => t.date === selectedDate)
     .sort((a, b) => a.time.localeCompare(b.time));
+
+  const todayStr = getTodayString();
+  const minDate = todayStr;
 
   if (!pet) return null;
 
@@ -172,6 +206,7 @@ export default function PetPlanner() {
                     label="Title"
                     value={form.title}
                     onChange={e => setForm({ ...form, title: e.target.value })}
+                    required
                   />
                   <div className="grid grid-cols-3 gap-3">
                     <Input 
@@ -179,13 +214,15 @@ export default function PetPlanner() {
                       type="time"
                       value={form.time}
                       onChange={e => setForm({ ...form, time: e.target.value })}
+                      required
                     />
                     <Input 
                       label="Date"
                       type="date"
                       value={form.date}
                       onChange={e => setForm({ ...form, date: e.target.value })}
-                      min={new Date().toISOString().split('T')[0]}
+                      min={minDate}
+                      required
                     />
                     <div>
                       <label className="block text-sm font-medium text-amber-900 mb-1">Type</label>
@@ -252,7 +289,7 @@ export default function PetPlanner() {
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button 
-                      onClick={() => handleDelete(task.id)}
+                      onClick={() => handleDelete(task.id, task.completed)}
                       className="p-2 text-orange-400 hover:text-red-600 hover:bg-red-50 rounded"
                     >
                       <Trash2 className="w-4 h-4" />
